@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "projectId": "hotel-des-glycines",
+  "repository": "guizaunzin/hoteldesglycines",
+  "updatedAt": "2026-11-08T19:30:00Z",
+  "summary": "Jogo de investigação para praticar conversação em francês (A2 e B1). No caso L'affaire du Rossignol, o jogador investiga o sumiço de uma caixa de música num hotel da Normandia: examina 3 ambientes, encontra 8 pistas e conversa por voz ou texto com 3 personagens que mentem e se contradizem. Um motor de regras no servidor decide o que cada personagem pode revelar; a IA (Claude, opcional) só verbaliza os fatos liberados. Sem chaves, roda em modo demonstração. Partida de 20 a 30 minutos, com balanço final de francês.",
+  "nextTask": "Validar a integração real com a API da Anthropic e com a voz da OpenAI usando chaves reais (até agora só foi testada com clientes simulados) e confirmar que GAME_STATE_SECRET está configurado em Production e Preview na Vercel.",
+  "features": [
+    {
+      "id": "case-rossignol",
+      "text": "Caso completo L'affaire du Rossignol: 3 personagens, 3 ambientes, 8 pistas, contradições e desfechos explicados.",
+      "status": "validated",
+      "evidence": "tests/case-integrity.test.ts prova por busca que todas as pistas e depoimentos são alcançáveis; passou em 08/11/2026 (npm test: 62/62)."
+    },
+    {
+      "id": "knowledge-limits",
+      "text": "Motor de investigação no servidor: cada personagem só recebe os fatos já liberados para ele, e a verdade do caso nunca entra no prompt.",
+      "status": "validated",
+      "evidence": "tests/knowledge.test.ts e tests/engine.test.ts passaram em 08/11/2026 (npm test: 62/62)."
+    },
+    {
+      "id": "accusation",
+      "text": "Acusação com suspeito e até três provas, recusa por provas insuficientes e desfechos resolvido ou perfeito.",
+      "status": "validated",
+      "evidence": "tests/engine.test.ts passou em 08/11/2026 (npm test: 62/62)."
+    },
+    {
+      "id": "encrypted-state",
+      "text": "Estado da partida num token cifrado e autenticado (AES-256-GCM) no navegador; tokens adulterados e localStorage corrompido, cheio ou bloqueado são tratados.",
+      "status": "validated",
+      "evidence": "tests/storage.test.ts e tests/token-classify-language.test.ts passaram em 08/11/2026 (npm test: 62/62)."
+    },
+    {
+      "id": "claude-dialogue",
+      "text": "Diálogo livre com Claude, com filtragem dos fatos usados, guarda contra confissões inventadas e fala de reserva em caso de erro ou recusa.",
+      "status": "implemented",
+      "evidence": "tests/claude-provider.test.ts passou em 08/11/2026, mas só com cliente simulado; falta testar com chave real."
+    },
+    {
+      "id": "demo-mode",
+      "text": "Modo demonstração sem nenhuma chave, com diálogos pré-escritos e compreensão por palavras-chave.",
+      "status": "implemented",
+      "evidence": ""
+    },
+    {
+      "id": "voice",
+      "text": "Voz pelo navegador (Web Speech API) com consentimento explícito; voz pelo servidor opcional com OPENAI_API_KEY; jogo totalmente jogável por texto.",
+      "status": "implemented",
+      "evidence": "A voz simulada é coberta por scripts/e2e.cjs, que não foi executado nesta verificação; a voz real não foi testada."
+    },
+    {
+      "id": "french-help",
+      "text": "Ajudas de francês: repetir, mais devagar, tradução, explicação de palavras, sugestões de perguntas e balanço final com três pontos prioritários e exercícios.",
+      "status": "implemented",
+      "evidence": "A classificação de perguntas em francês é coberta por tests/token-classify-language.test.ts."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "engine-vs-dialogue",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "O motor de regras decide o que cada personagem pode dizer; a IA só verbaliza. Assim a IA não tem como revelar a solução, mesmo diante de pedidos para ignorar as instruções."
+    },
+    {
+      "id": "stateless-server",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Sem banco de dados: o progresso fica num token cifrado no localStorage e o servidor é stateless."
+    },
+    {
+      "id": "turn-based-voice",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Voz por turnos (aperte, fale, solte) em vez de streaming, para cada fala passar pelo motor de regras e funcionar bem em funções serverless."
+    },
+    {
+      "id": "default-model",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Modelo padrão dos personagens configurável por ANTHROPIC_MODEL; modelos menores reduzem custo e latência."
+    }
+  ],
+  "bugs": [
+    {
+      "id": "real-api-untested",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Limitação conhecida: a integração real com a Anthropic e com a voz OpenAI não foi exercitada com chaves reais."
+    },
+    {
+      "id": "in-memory-rate-limit",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Limitação conhecida: o limitador de requisições é em memória, por instância. Para uso público, configurar rate limiting no firewall da Vercel."
+    },
+    {
+      "id": "firefox-voice",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Limitação conhecida: o reconhecimento de voz pelo navegador não funciona no Firefox (o jogo continua jogável por texto)."
+    }
+  ],
+  "tests": [
+    {
+      "id": "unit-2026-11-08",
+      "date": "2026-11-08T19:00:00Z",
+      "text": "npm test (Vitest): 6 arquivos, 62 testes passando — integridade do caso, limites de conhecimento, motor, provedor Claude simulado, armazenamento, token e classificação de francês."
+    }
+  ],
+  "changelog": [
+    {
+      "id": "v1",
+      "date": "2026-11-06T08:18:33Z",
+      "text": "Primeira versão jogável: L'affaire du Rossignol, motor de investigação, estado cifrado, modo demonstração, voz pelo navegador, ajudas de francês e balanço final."
+    }
+  ]
+}
